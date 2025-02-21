@@ -3,42 +3,59 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:MGContent.ViewModels"
+			 xmlns:local="using:MGContent"
 			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:Class="MGContent.Views.MainView"
 			 x:DataType="vm:MainViewModel">
 	<Design.DataContext>
-	<!-- This only sets the DataContext for the previewer in an IDE,
-			to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-	<vm:MainViewModel />
+		<!-- This only sets the DataContext for the previewer in an IDE,
+				to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:MainViewModel />
 	</Design.DataContext>
 
-	<StackPanel>
+	<DockPanel Background="#ff1E1E1E"
+			   TextElement.FontFamily="Trebuchet MS"
+			   TextElement.Foreground="White">
+		<!-- Top bar menu -->
+		<Menu DockPanel.Dock="Top" 
+			  Margin="0 0" 
+			  Height="24"
+			  Background="#ff404040">
+			<MenuItem Header="_File"
+					  Foreground="#ffc8c8c8">
+				<MenuItem Header="_Open..."/>
+				<Separator/>
+				<MenuItem Header="_Exit"/>
+			</MenuItem>
+			<MenuItem Header="_Edit"
+					  Foreground="#ffc8c8c8">
+				<MenuItem Header="Copy"/>
+				<MenuItem Header="Paste"/>
+			</MenuItem>
+		</Menu>
+		<Border Padding="4" DockPanel.Dock="Top" />
 
-		<Grid ShowGridLines="False" Margin="5"
-			  ColumnDefinitions="120, 120"
-			  RowDefinitions="Auto, Auto, Auto">
+		
+		<!-- Tree view -->
+		<TreeView ItemsSource="{Binding ContentTree}"
+				  DockPanel.Dock="Left">
+			<TreeView.Styles>
+				<Style Selector="TreeViewItem">
+					<Setter Property="MinHeight" Value="20" />
+					<Setter Property="BorderThickness" Value="0" />
+					<Setter Property="FontSize" Value="16" />
+					<Setter Property="Foreground" Value="#ffc8c8c8" />
+				</Style>
+			</TreeView.Styles>
+			<TreeView.DataTemplates>
+				<TreeDataTemplate DataType="local:TreeItem" 
+								  ItemsSource="{Binding Children}">
+					<TextBlock Text="{Binding Name}"
+							   Margin="-4"/>
+				</TreeDataTemplate>
+			</TreeView.DataTemplates>
+		</TreeView>
+	</DockPanel>
 
-			<Label Grid.Row="0" Grid.Column="0" 
-				   Margin="10">
-				Celsius
-			</Label>
-			
-			<TextBox Grid.Row="0" Grid.Column="1"
-					 Margin="5"
-					 Text="0"
-					 Name="CelsiusTxb"
-					 TextChanged="OnCelciusChanged"/>
-			
-			<Label Grid.Row="1" Grid.Column="0"
-				   Margin="10">
-				Fahrenheit
-			</Label>
-			
-			<TextBox Grid.Row="1" Grid.Column="1"
-					 Margin="5" 
-					 Text="0"
-					 Name="FahrenheitTxb"
-					 TextChanged="OnFahrenheitChanged"/>
-		</Grid>		
-	</StackPanel>
+
 </UserControl>
