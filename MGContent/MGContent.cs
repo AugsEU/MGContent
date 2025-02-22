@@ -1,23 +1,26 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
-namespace MGContent;
+﻿namespace MGContent;
 
 public class MGContent : Game
 {
-	private GraphicsDeviceManager _graphics;
+	GraphicsDeviceManager mGraphics;
+	ImGuiRenderer mImGuiRenderer;
 
-	public MGContent()
+	public MGContent() : base()
 	{
-		_graphics = new GraphicsDeviceManager(this);
+		mGraphics = new GraphicsDeviceManager(this);
 		Content.RootDirectory = "Content";
 		IsMouseVisible = true;
 	}
 
 	protected override void Initialize()
 	{
+		Window.AllowUserResizing = true;
+		Window.AllowAltF4 = true;
+		Window.Title = "MGContent++";
+
 		base.Initialize();
+
+		mImGuiRenderer = new ImGuiRenderer(this);
 	}
 
 	protected override void LoadContent()
@@ -34,9 +37,13 @@ public class MGContent : Game
 
 	protected override void Draw(GameTime gameTime)
 	{
-		GraphicsDevice.Clear(Color.CornflowerBlue);
+		GraphicsDevice.Clear(Color.Black);
 
-		// TODO: Add your drawing code here
+		mImGuiRenderer.BeforeLayout(gameTime);
+
+		ImGui.Text("Hello");
+
+		mImGuiRenderer.AfterLayout();
 
 		base.Draw(gameTime);
 	}
