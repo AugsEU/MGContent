@@ -11,7 +11,7 @@ public class MGContent : Game
 	static readonly Point WINDOW_START_SIZE = new Point(900, 600);
 	static readonly ImVec2 BROWSER_START_SIZE = new ImVec2(700.0f, 500.0f);
 
-	const float MIN_WINDOW_SIZE = 50.0f;
+	const float MIN_WINDOW_SIZE = 120.0f;
 	
 	#endregion rConst
 
@@ -28,6 +28,7 @@ public class MGContent : Game
 	// Windows
 	ContentBrowser mContentBrowser;
 	InfoPanel mInfoPanel;
+	BuildPanel mBuildPanel;
 
 	// Game
 	Rectangle mPrevWindowBounds;
@@ -52,12 +53,12 @@ public class MGContent : Game
 		// Windows
 		ImGuiWindowFlags commonFlags = ImGuiWindowFlags.NoTitleBar
 									| ImGuiWindowFlags.NoCollapse
-									| ImGuiWindowFlags.NoTitleBar
 									| ImGuiWindowFlags.NoMove;
 		mContentBrowser = new ContentBrowser(commonFlags);
 		mInfoPanel = new InfoPanel(commonFlags | ImGuiWindowFlags.NoResize);
+		mBuildPanel = new BuildPanel(commonFlags | ImGuiWindowFlags.NoResize);
 
-		mContentBrowser.RequestWindowSize(BROWSER_START_SIZE);
+		mContentBrowser.RequestSize = BROWSER_START_SIZE;
 	}
 
 
@@ -81,11 +82,15 @@ public class MGContent : Game
 
 		base.Initialize();
 
-		mImGuiRenderer = new ImGuiRenderer(this);
-
 		mGraphics.PreferredBackBufferWidth = WINDOW_START_SIZE.X;
 		mGraphics.PreferredBackBufferHeight = WINDOW_START_SIZE.Y;
 		mGraphics.ApplyChanges();
+
+		mContentBrowser.SizeMinMax = (new ImVec2(MIN_WINDOW_SIZE * 2.0f, MIN_WINDOW_SIZE),
+								new ImVec2(WINDOW_START_SIZE.X - MIN_WINDOW_SIZE, WINDOW_START_SIZE.Y - MIN_WINDOW_SIZE));
+
+		// Init ImGui
+		mImGuiRenderer = new ImGuiRenderer(this);
 	}
 
 
@@ -124,14 +129,17 @@ public class MGContent : Game
 	void OnWindowResize(object? sender, EventArgs e)
 	{
 		ImVec2 newWindowSize = new ImVec2(Window.ClientBounds.Width, Window.ClientBounds.Height);
-		ImVec2 browserSize = mContentBrowser.GetWindowSize();
+		ImVec2 browserSize = mContentBrowser.Size;
 
 		ImVec2 browserRatio = new ImVec2(browserSize.X / mPrevWindowBounds.Width, browserSize.Y / mPrevWindowBounds.Height);
 
 		browserSize.X = browserRatio.X * newWindowSize.X;
 		browserSize.Y = browserRatio.Y * newWindowSize.Y;
 
-		mContentBrowser.RequestWindowSize(browserSize);
+		mContentBrowser.RequestSize = browserSize;
+
+		mContentBrowser.SizeMinMax = (new ImVec2(MIN_WINDOW_SIZE * 2.0f, MIN_WINDOW_SIZE),
+								new ImVec2(Window.ClientBounds.Width - MIN_WINDOW_SIZE, Window.ClientBounds.Height - MIN_WINDOW_SIZE));
 
 		mPrevWindowBounds = Window.ClientBounds;
 	}
@@ -178,21 +186,23 @@ public class MGContent : Game
 	{
 		ImVec2 windowBounds = GetImVecWindowSize();
 
-		// Update content browser
-		mContentBrowser.RequestWindowPos(0.0f, 0.0f);
+		// Content browser
+		mContentBrowser.Position = new ImVec2(0.0f, 0.0f);
 		mContentBrowser.AddImGuiCommands(gameTime);
 
-		ImVec2 contentSize = mContentBrowser.GetWindowSize();
+		ImVec2 contentSize = mContentBrowser.Size;
 
-		//contentSize.X = Math.Min(contentSize.X, windowBounds.X - MIN_WINDOW_SIZE);
-		//contentSize.Y = Math.Min(contentSize.Y, windowBounds.Y - MIN_WINDOW_SIZE);
-
-		//mContentBrowser.RequestWindowSize(contentSize);
-
-		mInfoPanel.RequestWindowPos(contentSize.X, 0.0f);
-		mInfoPanel.RequestWindowSize(windowBounds.X - contentSize.X, windowBounds.Y);
+		// Info panel
+		mInfoPanel.Position = new ImVec2(contentSize.X, 0.0f);
+		mInfoPanel.RequestSize = new ImVec2(windowBounds.X - contentSize.X, windowBounds.Y);
 
 		mInfoPanel.AddImGuiCommands(gameTime);
+
+		// Build panel
+		mBuildPanel.Position = new ImVec2(0.0f, contentSize.Y);
+		mBuildPanel.RequestSize = new ImVec2(contentSize.X, windowBounds.Y - contentSize.Y);
+
+		mBuildPanel.AddImGuiCommands(gameTime);
 	}
 
 
