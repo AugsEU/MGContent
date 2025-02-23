@@ -32,6 +32,7 @@ public class MGContent : Game
 
 	// Game
 	Rectangle mPrevWindowBounds;
+	float mMenuBarSize = 10.0f;
 
 	#endregion rMembers
 
@@ -91,6 +92,8 @@ public class MGContent : Game
 
 		// Init ImGui
 		mImGuiRenderer = new ImGuiRenderer(this);
+
+		DirectoryScanner.OpenMCGB("C:\\Users\\Augus\\Documents\\Programming\\MonoGame\\GalaxyGame\\GalaxyGame\\GalaxyGame\\@Data\\Content.mgcb");
 	}
 
 
@@ -163,7 +166,7 @@ public class MGContent : Game
 
 		mImGuiRenderer.BeforeLayout(gameTime);
 
-		// Menu
+		DoMenuBar(gameTime);
 		DrawPanels(gameTime);
 
 		mImGuiRenderer.AfterLayout();
@@ -171,13 +174,7 @@ public class MGContent : Game
 		base.Draw(gameTime);
 	}
 
-	#endregion rDraw
 
-
-
-
-
-	#region rUtil
 
 	/// <summary>
 	/// Layout the 3 windows and draw them.
@@ -187,25 +184,109 @@ public class MGContent : Game
 		ImVec2 windowBounds = GetImVecWindowSize();
 
 		// Content browser
-		mContentBrowser.Position = new ImVec2(0.0f, 0.0f);
+		mContentBrowser.Position = new ImVec2(0.0f, mMenuBarSize);
 		mContentBrowser.AddImGuiCommands(gameTime);
 
 		ImVec2 contentSize = mContentBrowser.Size;
 
 		// Info panel
-		mInfoPanel.Position = new ImVec2(contentSize.X, 0.0f);
-		mInfoPanel.RequestSize = new ImVec2(windowBounds.X - contentSize.X, windowBounds.Y);
+		mInfoPanel.Position = new ImVec2(contentSize.X, mMenuBarSize);
+		mInfoPanel.RequestSize = new ImVec2(windowBounds.X - contentSize.X, windowBounds.Y - mMenuBarSize);
 
 		mInfoPanel.AddImGuiCommands(gameTime);
 
 		// Build panel
-		mBuildPanel.Position = new ImVec2(0.0f, contentSize.Y);
-		mBuildPanel.RequestSize = new ImVec2(contentSize.X, windowBounds.Y - contentSize.Y);
+		mBuildPanel.Position = new ImVec2(0.0f, contentSize.Y + mMenuBarSize);
+		mBuildPanel.RequestSize = new ImVec2(contentSize.X, windowBounds.Y - contentSize.Y - mMenuBarSize);
 
 		mBuildPanel.AddImGuiCommands(gameTime);
 	}
 
 
+
+	/// <summary>
+	/// Draw and handle menu bar.
+	/// </summary>
+	void DoMenuBar(GameTime gameTime)
+	{
+		// Begin the main menu bar
+		if (ImGui.BeginMainMenuBar())
+		{
+			mMenuBarSize = ImGui.GetFrameHeight();
+
+			// File menu
+			if (ImGui.BeginMenu("File"))
+			{
+				if (ImGui.MenuItem("New"))
+				{
+					// Handle "New" action
+				}
+
+				if (ImGui.MenuItem("Open", "Ctrl+O"))
+				{
+					// Handle "Open" action
+				}
+
+				if (ImGui.MenuItem("Save", "Ctrl+S"))
+				{
+					// Handle "Save" action
+				}
+
+				ImGui.Separator(); // Add a separator line
+
+				if (ImGui.MenuItem("Exit"))
+				{
+					// Handle "Exit" action
+				}
+
+				ImGui.EndMenu();
+			}
+
+			// Edit menu
+			if (ImGui.BeginMenu("Edit"))
+			{
+				if (ImGui.MenuItem("Undo", "Ctrl+Z"))
+				{
+					// Handle "Undo" action
+				}
+
+				if (ImGui.MenuItem("Redo", "Ctrl+Y", false, false)) // Disabled item
+				{
+					// Handle "Redo" action
+				}
+
+				ImGui.Separator(); // Add a separator line
+
+				if (ImGui.MenuItem("Cut", "Ctrl+X"))
+				{
+					// Handle "Cut" action
+				}
+
+				if (ImGui.MenuItem("Copy", "Ctrl+C"))
+				{
+					// Handle "Copy" action
+				}
+
+				if (ImGui.MenuItem("Paste", "Ctrl+V"))
+				{
+					// Handle "Paste" action
+				}
+
+				ImGui.EndMenu();
+			}
+
+			// End the main menu bar
+			ImGui.EndMainMenuBar();
+		}
+	}
+
+	#endregion rDraw
+
+
+
+
+
+	#region rUtil
 
 	/// <summary>
 	/// Get window size as an ImVec2

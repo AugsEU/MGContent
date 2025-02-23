@@ -11,9 +11,11 @@ class FileNode : IEquatable<FileNode>
 	#region rMember
 
 	public bool IsFile { get; private set; }
-	public string Path { get; set; }
+	public string FullPath { get; set; }
 	public DateTime LastModified { get; set; }
 	public List<FileNode> Children { get; set; }
+
+	string mBaseName = "";
 
 	#endregion rMember
 
@@ -35,11 +37,13 @@ class FileNode : IEquatable<FileNode>
 	/// </exception>
 	public FileNode(string path)
 	{
-		Path = path;
+		FullPath = path;
 		Children = new List<FileNode>();
 
 		// Determine if the path is a file or directory
 		IsFile = File.Exists(path);
+
+		mBaseName = Path.GetFileName(path);
 
 		if (IsFile)
 		{
@@ -52,10 +56,10 @@ class FileNode : IEquatable<FileNode>
 				throw new IOException($"Invalid file structure: {path}");
 			}
 
-			LastModified = Directory.GetLastWriteTime(Path);
+			LastModified = Directory.GetLastWriteTime(FullPath);
 
-			var files = Directory.GetFiles(Path);
-			var directories = Directory.GetDirectories(Path);
+			var files = Directory.GetFiles(FullPath);
+			var directories = Directory.GetDirectories(FullPath);
 
 			foreach (var file in files)
 			{
@@ -67,6 +71,8 @@ class FileNode : IEquatable<FileNode>
 				Children.Add(new FileNode(directory));
 			}
 		}
+
+		
 	}
 
 	#endregion rInit
@@ -84,7 +90,7 @@ class FileNode : IEquatable<FileNode>
 		if (other is null) 
 			return false;
 
-		if (other.Path != Path 
+		if (other.FullPath != FullPath 
 			|| other.IsFile != IsFile
 			|| other.Children.Count != Children.Count)
 		{
@@ -111,6 +117,78 @@ class FileNode : IEquatable<FileNode>
 
 		return true;
 	}
+
+
+
+	/// <summary>
+	/// Get the unique file.
+	/// </summary>
+	public FileNode GetUniqueFile(string extension)
+	{
+		FileNode? match = null;
+
+		foreach(FileNode node in Children)
+		{
+			if (node.IsFile)
+			{
+				if (node.FullPath.EndsWith(extension))
+				{
+					if (match is not null)
+					{
+						throw new Exception("Multiple mgcb files in folder. Please select a specific one.");
+					}
+
+					match = node;
+				}
+			}
+		}
+
+		if (match is null)
+		{
+			throw new Exception("No mgcb file found in folder");
+		}
+
+		return match;
+	}
+
+
+
+	/// <summary>
+	/// Get node matching path.
+	/// </summary>
+	public FileNode GetNodeWithPath(string path)
+	{
+		FileNode? match = null;
+
+		foreach (FileNode node in Children)
+		{
+			if (node.IsFile)
+			{
+				if (node.FullPath == path)
+				{
+					if (match is not null)
+					{
+						throw new Exception("Multiple mgcb files in folder with same name? Open an issue on GitHub.");
+					}
+
+					match = node;
+				}
+			}
+		}
+
+		if (match is null)
+		{
+			throw new Exception($"No mgcb file found matching {path}");
+		}
+
+		return match;
+	}
+
+
+	/// <summary>
+	/// Get the base name of this node.
+	/// </summary>
+	public string BaseName => mBaseName;
 
 	#endregion rUtil
 }
