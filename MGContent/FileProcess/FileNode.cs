@@ -61,14 +61,14 @@ class FileNode : IEquatable<FileNode>
 			var files = Directory.GetFiles(FullPath);
 			var directories = Directory.GetDirectories(FullPath);
 
-			foreach (var file in files)
-			{
-				Children.Add(new FileNode(file));
-			}
-
 			foreach (var directory in directories)
 			{
 				Children.Add(new FileNode(directory));
+			}
+
+			foreach (var file in files)
+			{
+				Children.Add(new FileNode(file));
 			}
 		}
 
@@ -135,7 +135,7 @@ class FileNode : IEquatable<FileNode>
 				{
 					if (match is not null)
 					{
-						throw new Exception("Multiple mgcb files in folder. Please select a specific one.");
+						throw new Exception($"Multiple {extension} files in folder. Please select a specific one.");
 					}
 
 					match = node;
@@ -145,7 +145,7 @@ class FileNode : IEquatable<FileNode>
 
 		if (match is null)
 		{
-			throw new Exception("No mgcb file found in folder");
+			throw new Exception($"No {extension} file found in folder");
 		}
 
 		return match;
@@ -168,7 +168,7 @@ class FileNode : IEquatable<FileNode>
 				{
 					if (match is not null)
 					{
-						throw new Exception("Multiple mgcb files in folder with same name? Open an issue on GitHub.");
+						throw new Exception("Multiple files in folder with same name? Open an issue on GitHub.");
 					}
 
 					match = node;
@@ -178,12 +178,17 @@ class FileNode : IEquatable<FileNode>
 
 		if (match is null)
 		{
-			throw new Exception($"No mgcb file found matching {path}");
+			throw new Exception($"No file found matching {path}");
 		}
 
 		return match;
 	}
 
+
+	public bool MatchesPattern(string pattern)
+	{
+		return Utils.MatchPathPattern(FullPath, pattern);
+	}
 
 	/// <summary>
 	/// Get the base name of this node.

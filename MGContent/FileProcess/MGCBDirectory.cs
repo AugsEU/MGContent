@@ -3,14 +3,14 @@
 namespace MGContent;
 
 /// <summary>
-/// Scan of a given directory.
+/// Information about an MGCB folder that is open.
 /// </summary>
-static class DirectoryScanner
+class MGCBDirectory
 {
 	#region rMembers
 
-	static FileNode? mContentFolder;
-	static FileNode? mContentMGCBFile;
+	FileNode mOpenFolder;
+	FileNode mMGCBFile;
 
 	#endregion rMembers
 
@@ -21,10 +21,12 @@ static class DirectoryScanner
 	#region rInit
 
 	/// <summary>
-	/// Init static class.
+	/// Read the directory.
 	/// </summary>
-	static DirectoryScanner()
+	private MGCBDirectory(FileNode openFolder, FileNode mgcbNode)
 	{
+		mOpenFolder = openFolder;
+		mMGCBFile = mgcbNode;
 	}
 
 	#endregion rInit
@@ -37,7 +39,7 @@ static class DirectoryScanner
 	/// <summary>
 	/// Open an MGCB file.
 	/// </summary>
-	public static void OpenMCGB(string path)
+	public static MGCBDirectory TryOpenMGCBFolder(string path)
 	{
 		try
 		{
@@ -65,30 +67,28 @@ static class DirectoryScanner
 				throw new Exception("Path doesn't exist");
 			}
 
-			mContentFolder = new FileNode(path);
+			FileNode folderNode = new FileNode(path);
+			FileNode mgcbNode = null;
 
 			if (mgcbPath is not null)
 			{
-				mContentMGCBFile = mContentFolder.GetNodeWithPath(mgcbPath);
+				mgcbNode = folderNode.GetNodeWithPath(mgcbPath);
 			}
 			else
 			{
-				mContentMGCBFile = mContentFolder.GetUniqueFile(".mgcb");
+				mgcbNode = folderNode.GetUniqueFile(".mgcb");
 			}
+
+			return new MGCBDirectory(folderNode, mgcbNode);
 		}
 		catch(Exception ex)
 		{
-			mContentFolder = null;
-			mContentMGCBFile = null;
-
 			throw new Exception(ex.Message);
 		}
 	}
 
-
-	public static bool IsOpen => mContentFolder is not null;
-	public static FileNode? ContentFolder => mContentFolder;
-	public static FileNode? MGCBFile => mContentMGCBFile;
+	public FileNode Root => mOpenFolder;
+	public FileNode MGCBFile => mMGCBFile;
 
 	#endregion rUtil
 }

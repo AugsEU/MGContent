@@ -62,7 +62,7 @@ class ContentBrowser : ImGuiWindow
 	/// </summary>
 	protected override void AddWindowCommands(GameTime time)
 	{
-		FileNode? mgcbFolder = DirectoryScanner.ContentFolder;
+		FileNode? mgcbFolder = ContentManager.OpenFolder;
 		if (mgcbFolder is null)
 		{
 			ImGui.Text("No MGCB file loaded...");
@@ -82,23 +82,32 @@ class ContentBrowser : ImGuiWindow
 	/// </summary>
 	private void DoFileNode(int indent, FileNode node)
 	{
+		bool selected = mSelectedFileNode == node;
+
+		if(ContentManager.Rules.ShouldIgnore(node.FullPath))
+		{
+			return;
+		}
+
 		if (node.IsFile)
 		{
 			string lineNum = GetStringForFileNode(indent, node);
-			if (ImGui.Selectable(lineNum, false, ImGuiSelectableFlags.SpanAllColumns))
+			if (ImGui.Selectable(lineNum, selected, ImGuiSelectableFlags.SpanAllColumns))
 			{
+				mSelectedFileNode = node;
 			}
 		}
-		else // Needs to be a separate case?
+		else
 		{
 			string lineNum = GetStringForFileNode(indent, node);
 
 			mOpenDirectories.TryGetValue(node, out bool dirOpen);
 
-			if (ImGui.Selectable(lineNum, false, ImGuiSelectableFlags.SpanAllColumns))
+			if (ImGui.Selectable(lineNum, selected, ImGuiSelectableFlags.SpanAllColumns))
 			{
 				dirOpen = !dirOpen;
 				mOpenDirectories[node] = dirOpen;
+				mSelectedFileNode = node;
 			}
 
 			if(dirOpen)
@@ -121,7 +130,7 @@ class ContentBrowser : ImGuiWindow
 
 	string GetStringForFileNode(int indent, FileNode node)
 	{
-		if (mStringCache.TryGetValue(node, out string value))
+		if (mStringCache.TryGetValue(node, out string? value))
 		{
 			return value;
 		}

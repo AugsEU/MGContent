@@ -9,7 +9,7 @@ public class MGContent : Game
 	#region rConst
 
 	static readonly Point WINDOW_START_SIZE = new Point(900, 600);
-	static readonly ImVec2 BROWSER_START_SIZE = new ImVec2(700.0f, 500.0f);
+	static readonly ImVec2 BROWSER_START_SIZE = new ImVec2(600.0f, 400.0f);
 
 	const float MIN_WINDOW_SIZE = 120.0f;
 	
@@ -93,7 +93,8 @@ public class MGContent : Game
 		// Init ImGui
 		mImGuiRenderer = new ImGuiRenderer(this);
 
-		DirectoryScanner.OpenMCGB("C:\\Users\\Augus\\Documents\\Programming\\MonoGame\\GalaxyGame\\GalaxyGame\\GalaxyGame\\@Data\\Content.mgcb");
+		// Test
+		ContentManager.TryOpenMGCB("C:\\Users\\Augus\\Documents\\Programming\\MonoGame\\GalaxyGame\\GalaxyGame\\GalaxyGame\\@Data\\Content.mgcb");
 	}
 
 
