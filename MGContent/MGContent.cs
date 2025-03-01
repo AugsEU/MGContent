@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace MGContent;
 
@@ -29,6 +30,8 @@ public class MGContent : Game
 	ContentBrowser mContentBrowser;
 	InfoPanel mInfoPanel;
 	BuildPanel mBuildPanel;
+
+	Task<string?>? mPendingFileOpen;
 
 	// Game
 	Rectangle mPrevWindowBounds;
@@ -78,7 +81,6 @@ public class MGContent : Game
 		mPrevWindowBounds.Width = WINDOW_START_SIZE.X;
 		mPrevWindowBounds.Height = WINDOW_START_SIZE.Y;
 
-		IsFixedTimeStep = true;
 		TargetElapsedTime = TimeSpan.FromSeconds(1.0 / 60.0);
 
 		base.Initialize();
@@ -93,8 +95,8 @@ public class MGContent : Game
 		// Init ImGui
 		mImGuiRenderer = new ImGuiRenderer(this);
 
-		// Test
-		ContentManager.TryOpenMGCB("C:\\Users\\Augus\\Documents\\Programming\\MonoGame\\GalaxyGame\\GalaxyGame\\GalaxyGame\\@Data\\Content.mgcb");
+		// Init Eto forms(Used for dialogs)
+		Eto.Platform.Initialize(Eto.Platforms.WinForms);
 	}
 
 
@@ -120,9 +122,19 @@ public class MGContent : Game
 	protected override void Update(GameTime gameTime)
 	{
 		if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+		{
 			Exit();
+		}
+
+		
 
 		base.Update(gameTime);
+	}
+
+
+	void CheckPendingFileOpen()
+	{
+
 	}
 
 
@@ -163,12 +175,18 @@ public class MGContent : Game
 	{
 		if (mImGuiRenderer is null) throw new NullReferenceException();
 
+		bool uiDisabled = IsUIDisabled();
+
 		GraphicsDevice.Clear(Color.Black);
 
 		mImGuiRenderer.BeforeLayout(gameTime);
 
+		ImGui.BeginDisabled(uiDisabled);
+
 		DoMenuBar(gameTime);
 		DrawPanels(gameTime);
+
+		ImGui.EndDisabled();
 
 		mImGuiRenderer.AfterLayout();
 
@@ -225,7 +243,7 @@ public class MGContent : Game
 
 				if (ImGui.MenuItem("Open", "Ctrl+O"))
 				{
-					// Handle "Open" action
+					mPendingFileOpen = OpenFileUtil.LaunchOpenFileDialog();
 				}
 
 				if (ImGui.MenuItem("Save", "Ctrl+S"))
@@ -279,6 +297,17 @@ public class MGContent : Game
 			// End the main menu bar
 			ImGui.EndMainMenuBar();
 		}
+	}
+
+
+	bool IsUIDisabled()
+	{
+		if (mPendingFileOpen is not null)
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	#endregion rDraw

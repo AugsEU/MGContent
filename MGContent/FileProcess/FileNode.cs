@@ -37,6 +37,7 @@ class FileNode : IEquatable<FileNode>
 	/// </exception>
 	public FileNode(string path)
 	{
+		path = Utils.NormalisedPath(path);
 		FullPath = path;
 		Children = new List<FileNode>();
 
@@ -121,9 +122,9 @@ class FileNode : IEquatable<FileNode>
 
 
 	/// <summary>
-	/// Get the unique file.
+	/// Get the unique file in this directory.
 	/// </summary>
-	public FileNode GetUniqueFile(string extension)
+	public FileNode? GetUniqueFileMatching(string pattern)
 	{
 		FileNode? match = null;
 
@@ -131,21 +132,16 @@ class FileNode : IEquatable<FileNode>
 		{
 			if (node.IsFile)
 			{
-				if (node.FullPath.EndsWith(extension))
+				if (Utils.MatchPathPattern(node.FullPath, pattern))
 				{
 					if (match is not null)
 					{
-						throw new Exception($"Multiple {extension} files in folder. Please select a specific one.");
+						throw new Exception($"Multiple |{pattern}| files in folder. Please select a specific one.");
 					}
 
 					match = node;
 				}
 			}
-		}
-
-		if (match is null)
-		{
-			throw new Exception($"No {extension} file found in folder");
 		}
 
 		return match;
@@ -156,39 +152,53 @@ class FileNode : IEquatable<FileNode>
 	/// <summary>
 	/// Get node matching path.
 	/// </summary>
-	public FileNode GetNodeWithPath(string path)
+	public FileNode? GetChildWithPath(string path)
 	{
-		FileNode? match = null;
-
-		foreach (FileNode node in Children)
-		{
-			if (node.IsFile)
-			{
-				if (node.FullPath == path)
-				{
-					if (match is not null)
-					{
-						throw new Exception("Multiple files in folder with same name? Open an issue on GitHub.");
-					}
-
-					match = node;
-				}
-			}
-		}
-
-		if (match is null)
-		{
-			throw new Exception($"No file found matching {path}");
-		}
-
-		return match;
+		path = Utils.NormalisedPath(path);
+		return RecursiveFileNodeSearch(path);
 	}
 
 
+
+	/// <summary>
+	/// Search children for a match to a file path. Done in a way to avoid allocations.
+	/// </summary>
+	private FileNode? RecursiveFileNodeSearch(string path)
+	{
+		if (path == FullPath)
+		{
+			return this;
+		}
+
+		if (!path.StartsWith(FullPath))
+		{
+			return null;
+		}
+
+		foreach (FileNode child in Children)
+		{
+			FileNode? childSearch = child.RecursiveFileNodeSearch(path);
+
+			if(childSearch is not null)
+			{
+				return childSearch;
+			}
+		}
+
+		return null;
+	}
+
+
+
+	/// <summary>
+	/// Does this match the pattern?
+	/// </summary>
 	public bool MatchesPattern(string pattern)
 	{
 		return Utils.MatchPathPattern(FullPath, pattern);
 	}
+
+
 
 	/// <summary>
 	/// Get the base name of this node.

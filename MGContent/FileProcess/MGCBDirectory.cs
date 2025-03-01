@@ -68,15 +68,20 @@ class MGCBDirectory
 			}
 
 			FileNode folderNode = new FileNode(path);
-			FileNode mgcbNode = null;
+			FileNode? mgcbNode = null;
 
 			if (mgcbPath is not null)
 			{
-				mgcbNode = folderNode.GetNodeWithPath(mgcbPath);
+				mgcbNode = folderNode.GetChildWithPath(mgcbPath);
 			}
 			else
 			{
-				mgcbNode = folderNode.GetUniqueFile(".mgcb");
+				mgcbNode = folderNode.GetUniqueFileMatching("*.mgcb");
+			}
+
+			if (mgcbNode is null)
+			{
+				throw new Exception($"Could not find MGCB file in folder: {path}");
 			}
 
 			return new MGCBDirectory(folderNode, mgcbNode);

@@ -20,9 +20,9 @@ class ContentBrowser : ImGuiWindow
 
 	#region rMembers
 
-	FileNode? mSelectedFileNode;
-	Dictionary<FileNode, bool> mOpenDirectories = new();
-	Dictionary<FileNode, string> mStringCache = new();
+	string? mSelectedFile;
+	Dictionary<string, bool> mOpenDirectories = new();
+	Dictionary<string, string> mStringCache = new();
 
 	#endregion rMembers
 
@@ -37,7 +37,7 @@ class ContentBrowser : ImGuiWindow
 	/// </summary>
 	public ContentBrowser(ImGuiWindowFlags flags) : base("Browser", flags)
 	{
-		mSelectedFileNode = null;
+		mSelectedFile = null;
 
 	}
 
@@ -82,7 +82,7 @@ class ContentBrowser : ImGuiWindow
 	/// </summary>
 	private void DoFileNode(int indent, FileNode node)
 	{
-		bool selected = mSelectedFileNode == node;
+		bool selected = mSelectedFile == node.FullPath;
 
 		if(ContentManager.Rules.ShouldIgnore(node.FullPath))
 		{
@@ -94,20 +94,20 @@ class ContentBrowser : ImGuiWindow
 			string lineNum = GetStringForFileNode(indent, node);
 			if (ImGui.Selectable(lineNum, selected, ImGuiSelectableFlags.SpanAllColumns))
 			{
-				mSelectedFileNode = node;
+				mSelectedFile = node.FullPath;
 			}
 		}
 		else
 		{
 			string lineNum = GetStringForFileNode(indent, node);
 
-			mOpenDirectories.TryGetValue(node, out bool dirOpen);
+			mOpenDirectories.TryGetValue(node.FullPath, out bool dirOpen);
 
 			if (ImGui.Selectable(lineNum, selected, ImGuiSelectableFlags.SpanAllColumns))
 			{
 				dirOpen = !dirOpen;
-				mOpenDirectories[node] = dirOpen;
-				mSelectedFileNode = node;
+				mOpenDirectories[node.FullPath] = dirOpen;
+				mSelectedFile = node.FullPath;
 			}
 
 			if(dirOpen)
@@ -130,7 +130,7 @@ class ContentBrowser : ImGuiWindow
 
 	string GetStringForFileNode(int indent, FileNode node)
 	{
-		if (mStringCache.TryGetValue(node, out string? value))
+		if (mStringCache.TryGetValue(node.FullPath, out string? value))
 		{
 			return value;
 		}
@@ -148,7 +148,7 @@ class ContentBrowser : ImGuiWindow
 			result = $" {spacing}¬ {node.BaseName}";
 		}
 
-			mStringCache.Add(node, result);
+		mStringCache.Add(node.FullPath, result);
 		return result;
 	}
 
