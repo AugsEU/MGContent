@@ -126,7 +126,7 @@ public class MGContent : Game
 			Exit();
 		}
 
-		
+		CheckPendingFileOpen();
 
 		base.Update(gameTime);
 	}
@@ -134,7 +134,20 @@ public class MGContent : Game
 
 	void CheckPendingFileOpen()
 	{
+		if (mPendingFileOpen is null)
+		{
+			return;
+		}
 
+		if (mPendingFileOpen.IsCompleted)
+		{
+			string? mgcbPath = mPendingFileOpen.Result;
+			if (mgcbPath is not null && mgcbPath.Length > 0)
+			{
+				string? errorMessage = ContentManager.TryOpenMGCB(mgcbPath);
+			}
+			mPendingFileOpen = null;
+		}
 	}
 
 
