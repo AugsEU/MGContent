@@ -51,7 +51,7 @@ public class MGContent : Game
 	public MGContent() : base()
 	{
 		mGraphics = new GraphicsDeviceManager(this);
-		Content.RootDirectory = "Content";
+		Content.RootDirectory = "Resources";
 		IsMouseVisible = true;
 
 		// Windows
