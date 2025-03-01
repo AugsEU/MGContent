@@ -31,6 +31,8 @@ public class MGContent : Game
 	InfoPanel mInfoPanel;
 	BuildPanel mBuildPanel;
 
+	List<ErrorDialog> mErrorDialogs;
+
 	Task<string?>? mPendingFileOpen;
 
 	// Game
@@ -63,6 +65,8 @@ public class MGContent : Game
 		mBuildPanel = new BuildPanel(commonFlags | ImGuiWindowFlags.NoResize);
 
 		mContentBrowser.RequestSize = BROWSER_START_SIZE;
+
+		mErrorDialogs = new();
 	}
 
 
@@ -128,10 +132,15 @@ public class MGContent : Game
 
 		CheckPendingFileOpen();
 
+		CheckErrorDialogs();
+
 		base.Update(gameTime);
 	}
 
 
+	/// <summary>
+	/// Check on file dialog thread.
+	/// </summary>
 	void CheckPendingFileOpen()
 	{
 		if (mPendingFileOpen is null)
@@ -145,11 +154,33 @@ public class MGContent : Game
 			if (mgcbPath is not null && mgcbPath.Length > 0)
 			{
 				string? errorMessage = ContentManager.TryOpenMGCB(mgcbPath);
+
+				if (errorMessage is not null)
+				{
+					mErrorDialogs.Add(new ErrorDialog("Open failed.", errorMessage));
+				}
 			}
+			
 			mPendingFileOpen = null;
 		}
 	}
 
+
+
+	/// <summary>
+	/// Check to see what the errors are up to.
+	/// </summary>
+	void CheckErrorDialogs()
+	{
+		for(int i = mErrorDialogs.Count; i > 0; i--)
+		{
+			ErrorDialog dialog = mErrorDialogs[i - 1];
+			if (dialog.GetState() == ErrorDialog.State.OK)
+			{
+				mErrorDialogs.RemoveAt(i - 1);
+			}
+		}
+	}
 
 
 	/// <summary>
@@ -194,6 +225,8 @@ public class MGContent : Game
 
 		mImGuiRenderer.BeforeLayout(gameTime);
 
+		DrawErrorDialogs(gameTime);
+
 		ImGui.BeginDisabled(uiDisabled);
 
 		DoMenuBar(gameTime);
@@ -206,6 +239,24 @@ public class MGContent : Game
 		base.Draw(gameTime);
 	}
 
+
+	/// <summary>
+	/// Draw errors
+	/// </summary>
+	void DrawErrorDialogs(GameTime gameTime)
+	{
+		ImGui.BeginDisabled(false); // These are never disabled.
+		ImVec2 screenSize = new ImVec2(Window.ClientBounds.Width, Window.ClientBounds.Height);
+
+		for (int i = 0; i < mErrorDialogs.Count; i++)
+		{
+			ErrorDialog errorDialog = mErrorDialogs[i];
+
+			errorDialog.Position = screenSize * 0.5f + new ImVec2(i, i) * 20.0f - errorDialog.Size * 0.5f;
+			errorDialog.AddImGuiCommands(gameTime);
+		}
+		ImGui.EndDisabled();
+	}
 
 
 	/// <summary>
@@ -313,9 +364,17 @@ public class MGContent : Game
 	}
 
 
+	/// <summary>
+	/// Should we disable the UI?
+	/// </summary>
 	bool IsUIDisabled()
 	{
 		if (mPendingFileOpen is not null)
+		{
+			return true;
+		}
+
+		if (mErrorDialogs.Count > 0)
 		{
 			return true;
 		}
